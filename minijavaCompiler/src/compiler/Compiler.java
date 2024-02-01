@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import java.io.IOException;
 
-public class Compiler {
+public class Compiler{
     public static void main(String[] args) {
         CharStream stream;
         {

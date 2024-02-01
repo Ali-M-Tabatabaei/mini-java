@@ -62,27 +62,36 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterClassDeclaration(MiniJavaParser.ClassDeclarationContext ctx) {
         String output = "class " + ctx.className.getText();
-        if(ctx.parentClass != null){
-            output.concat(" extends " + ctx.parent.getText());
+        String parent = ctx.parentClass.getText();
+        int hasParent = 1;
+        if(!parent.isEmpty()){
+            output = output.concat(" extends " + parent);
+            hasParent ++;
         }
         if(ctx.getText().contains("implements")){
             String stringToConcat = "";
-            for (int i = 0; i < ctx.Identifier().size(); i++) {
-                stringToConcat = stringToConcat.concat(ctx.Identifier(i).getText());
+            for (int i = hasParent; i < ctx.Identifier().size(); i++) {
+                if (i == ctx.Identifier().size() -1)
+                    stringToConcat = stringToConcat.concat(ctx.Identifier(i).getText());
+                else
+                    stringToConcat = stringToConcat.concat(ctx.Identifier(i).getText() + ", ");
             }
+
             output = output.concat(" implements " + stringToConcat);
         }
-        System.out.println(output);
+        indent ++;
+        System.out.println(output + " {\n");
     }
 
     @Override
     public void exitClassDeclaration(MiniJavaParser.ClassDeclarationContext ctx) {
-
+        System.out.print("}\n");
+        indent -= 1;
     }
 
     @Override
     public void enterInterfaceDeclaration(MiniJavaParser.InterfaceDeclarationContext ctx) {
-
+        String output
     }
 
     @Override

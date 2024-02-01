@@ -4,7 +4,7 @@ class BubbleSort {
     }
 }
 
-class BBS inherits BubbleSort{
+class BBS inherits BubbleSort implements Ali,Reza {
 
     number[] number1 ;
     number size ;
