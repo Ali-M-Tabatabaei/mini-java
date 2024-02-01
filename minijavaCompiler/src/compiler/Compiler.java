@@ -16,7 +16,7 @@ public class Compiler {
         CharStream stream;
         {
             try {
-                stream = CharStreams.fromFileName("./sample/test.txt");
+                stream = CharStreams.fromFileName("./sample/test.mj");
                 MiniJavaLexer lexer = new MiniJavaLexer(stream);
                 TokenStream tokens = new CommonTokenStream(lexer);
                 MiniJavaParser parser = new MiniJavaParser(tokens);
