@@ -23,6 +23,11 @@ public class ProgramPrinter implements MiniJavaListener {
         return str;
     }
 
+    private void printTab(int tabCount){
+        for (int i=0; i<tabCount; i++)
+            System.out.print("\t");
+    }
+
     @Override
     public void enterProgram(MiniJavaParser.ProgramContext ctx) {
         System.out.println("program start: \n");
@@ -119,6 +124,9 @@ public class ProgramPrinter implements MiniJavaListener {
                 else
                     output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + " );\n");
             }
+        }else {
+            output = output.concat(") {\n");
+
         }
         System.out.println(output);
     }
@@ -130,8 +138,24 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterFieldDeclaration(MiniJavaParser.FieldDeclarationContext ctx) {
+        String output = "\t";
+        if(ctx.accessModifier() != null){
+            output = output.concat(ctx.accessModifier().getText() + " ");
+        }
+        if (ctx.Final() != null) {
+            output = output.concat(ctx.Final().getText() + " ");
+        }
+        output = output.concat(changeType(ctx.type().getText()) + " " + ctx.Identifier().getText() + " ");
+        if (ctx.EQ() != null){
+            output = (ctx.expression().start.getText().equals("new")) ? output.concat(ctx.EQ().getText() + " " + ctx.expression().getText().replace("new", "new ") + " ;\n") : output.concat(ctx.EQ().getText() + " " + ctx.expression().getText() + " ;\n");
+        }else{
+            output = output.concat(";\n");
+        }
 
+        System.out.print(output);
     }
+
+
 
     @Override
     public void exitFieldDeclaration(MiniJavaParser.FieldDeclarationContext ctx) {
@@ -140,7 +164,8 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterLocalDeclaration(MiniJavaParser.LocalDeclarationContext ctx) {
-
+        printTab(indent);
+        System.out.println(changeType(ctx.type().getText()) + " " + ctx.Identifier() + ";");
     }
 
     @Override
@@ -150,12 +175,36 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
+        indent ++;
+        String output = "/t";
+        if( ctx.Override() != null)
+            output = output.concat(ctx.Override().getText() + "\n\t");
+        if (!ctx.accessModifier().isEmpty())
+            output = output.concat(ctx.accessModifier().getText() + " ");
+        if (ctx.returnType() != null)
+            output = output.concat(changeType(ctx.returnType().getText()) + " ");
 
+        output = output.concat(ctx.Identifier().getText() + " (");
+        if (!ctx.parameterList().isEmpty()){
+            for (int i = 0; i < ctx.parameterList().parameter().size(); i++) {
+                if(!(i == ctx.parameterList().parameter().size() - 1))
+                    output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + ", ");
+                else
+                    output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + " ) {\n");
+            }
+        }else {
+            output = output.concat(") {\n");
+
+        }
+        System.out.println(output);
     }
 
     @Override
     public void exitMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
-
+        indent --;
+        if (ctx.methodBody().RETURN() != null)
+            System.out.println("\t\treturn " + ctx.methodBody().expression().getText() + ";");
+        System.out.print("\t}\n");
     }
 
     @Override

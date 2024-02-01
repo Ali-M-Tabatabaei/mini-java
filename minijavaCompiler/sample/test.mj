@@ -7,7 +7,8 @@ class BubbleSort {
 class BBS inherits BubbleSort implements Ali,Reza {
 
     number[] number1 ;
-    number size ;
+    public final number size = 1 ;
+    Node n = new Node();
 
 
     public number Start(int sz){
