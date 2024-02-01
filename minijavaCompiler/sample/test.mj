@@ -86,3 +86,7 @@ class BBS inherits BubbleSort implements Ali,Reza {
     }
 
 }
+
+interface Ali {
+    public number Alifunc (number[] par1, String par2, number par3);
+}

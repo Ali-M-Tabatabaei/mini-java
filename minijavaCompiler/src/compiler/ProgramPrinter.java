@@ -14,8 +14,8 @@ public class ProgramPrinter implements MiniJavaListener {
     private boolean nestedBlockForStatement = false;
     private Stack<Boolean> nestedBlockStack = new Stack<Boolean>();
 
-    private String changeType(MiniJavaParser.TypeContext type){
-        String str = type.getText();
+    private String changeType(String type){
+        String str = type;
 
         if (str != null) {
             str = (str.contains("number")) ? str.replace("number", "int") : str;
@@ -49,7 +49,7 @@ public class ProgramPrinter implements MiniJavaListener {
     public void enterMainMethod(MiniJavaParser.MainMethodContext ctx) {
         indent ++;
         String output = "\tpublic static void main (";
-        output = output.concat(changeType(ctx.type()) + " " + ctx.Identifier().getText() + ") {\n");
+        output = output.concat(changeType(ctx.type().getText()) + " " + ctx.Identifier().getText() + ") {\n");
         System.out.println(output);
     }
 
@@ -91,17 +91,36 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterInterfaceDeclaration(MiniJavaParser.InterfaceDeclarationContext ctx) {
-        String output
+        String output = "interface " + ctx.Identifier().getText() + " {\n";
+        System.out.println(output);
+        indent ++;
     }
 
     @Override
     public void exitInterfaceDeclaration(MiniJavaParser.InterfaceDeclarationContext ctx) {
-
+        System.out.print("}\n");
+        indent -= 1;
     }
 
     @Override
     public void enterInterfaceMethodDeclaration(MiniJavaParser.InterfaceMethodDeclarationContext ctx) {
-
+        String output = "\t";
+        if(!ctx.accessModifier().isEmpty()){
+            output = output.concat(ctx.accessModifier().getText()+ " ");
+        }
+        if(!ctx.returnType().isEmpty()){
+            output = output.concat(changeType(ctx.returnType().getText()) + " ");
+        }
+        output = output.concat(ctx.Identifier().getText() + " ( ");
+        if (!ctx.parameterList().isEmpty()){
+            for (int i = 0; i < ctx.parameterList().parameter().size(); i++) {
+                if(!(i == ctx.parameterList().parameter().size() - 1))
+                    output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + ", ");
+                else
+                    output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + " );\n");
+            }
+        }
+        System.out.println(output);
     }
 
     @Override
