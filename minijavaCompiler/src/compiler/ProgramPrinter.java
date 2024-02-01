@@ -10,9 +10,18 @@ import java.util.Stack;
 
 
 public class ProgramPrinter implements MiniJavaListener {
-    public static int indent_level = 0;
+    private static int indent = 0;
     private boolean nestedBlockForStatement = false;
     private Stack<Boolean> nestedBlockStack = new Stack<Boolean>();
+
+    private String changeType(MiniJavaParser.TypeContext type){
+        String str = type.getText();
+
+        if (str != null) {
+            str = (str.contains("number")) ? str.replace("number", "int") : str;
+        }
+        return str;
+    }
 
     @Override
     public void enterProgram(MiniJavaParser.ProgramContext ctx) {
@@ -26,27 +35,44 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterMainClass(MiniJavaParser.MainClassContext ctx) {
-        
+        System.out.println("class " + ctx.className.getText() + "{\n");
+        indent ++;
     }
 
     @Override
     public void exitMainClass(MiniJavaParser.MainClassContext ctx) {
-
+        System.out.println("}\n");
+        indent --;
     }
 
     @Override
     public void enterMainMethod(MiniJavaParser.MainMethodContext ctx) {
-
+        indent ++;
+        String output = "\tpublic static void main (";
+        output = output.concat(changeType(ctx.type()) + " " + ctx.Identifier().getText() + ") {\n");
+        System.out.println(output);
     }
 
     @Override
     public void exitMainMethod(MiniJavaParser.MainMethodContext ctx) {
-
+        indent --;
+        System.out.print("\t}\n");
     }
 
     @Override
     public void enterClassDeclaration(MiniJavaParser.ClassDeclarationContext ctx) {
-
+        String output = "class " + ctx.className.getText();
+        if(ctx.parentClass != null){
+            output.concat(" extends " + ctx.parent.getText());
+        }
+        if(ctx.getText().contains("implements")){
+            String stringToConcat = "";
+            for (int i = 0; i < ctx.Identifier().size(); i++) {
+                stringToConcat = stringToConcat.concat(ctx.Identifier(i).getText());
+            }
+            output = output.concat(" implements " + stringToConcat);
+        }
+        System.out.println(output);
     }
 
     @Override

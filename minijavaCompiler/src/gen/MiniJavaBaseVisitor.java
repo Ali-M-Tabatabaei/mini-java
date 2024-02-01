@@ -1,4 +1,5 @@
 package gen;// Generated from /home/alimtt/Documents/GitHub/mini-java/minijavaCompiler/grammar/MiniJava.g4 by ANTLR 4.13.1
+import gen.MiniJavaVisitor;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 /**

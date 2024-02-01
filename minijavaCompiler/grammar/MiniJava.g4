@@ -9,7 +9,7 @@ mainMethod:
  'public' 'static' 'void' 'main' '(' type  Identifier ')' '{' statement* '}'
 ;
 classDeclaration
-:	 'class' className = Identifier ('inherits' Identifier)? ( 'implements' Identifier ( ',' Identifier)* )? '{' fieldDeclaration* methodDeclaration* '}';
+:	 'class' className = Identifier ('inherits' parentClass = Identifier)? ( 'implements' Identifier ( ',' Identifier)* )? '{' fieldDeclaration* methodDeclaration* '}';
 
 interfaceDeclaration: 'interface' Identifier '{' fieldDeclaration* interfaceMethodDeclaration*	'}';
 
@@ -28,6 +28,7 @@ methodDeclaration
 parameterList
 :   parameter (',' parameter)*
 ;
+
 
 parameter
 :   type Identifier

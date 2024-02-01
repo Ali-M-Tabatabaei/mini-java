@@ -1,10 +1,12 @@
 package compiler;
 
 
+import gen.MiniJavaListener;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
-import gen.*;
+import gen.MiniJavaLexer;
+import gen.MiniJavaParser;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;

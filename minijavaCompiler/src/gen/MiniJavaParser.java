@@ -1,4 +1,7 @@
-package gen;// Generated from /home/alimtt/Documents/GitHub/mini-java/minijavaCompiler/grammar/MiniJava.g4 by ANTLR 4.13.1
+// Generated from /home/alimtt/Documents/GitHub/mini-java/minijavaCompiler/grammar/MiniJava.g4 by ANTLR 4.13.1
+package gen;
+import gen.MiniJavaListener;
+import gen.MiniJavaVisitor;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -137,7 +140,7 @@ public class MiniJavaParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_program; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof MiniJavaListener ) ((MiniJavaListener)listener).enterProgram(this);
+			if ( listener instanceof MiniJavaListener) ((MiniJavaListener)listener).enterProgram(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
@@ -145,7 +148,7 @@ public class MiniJavaParser extends Parser {
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MiniJavaVisitor ) return ((MiniJavaVisitor<? extends T>)visitor).visitProgram(this);
+			if ( visitor instanceof MiniJavaVisitor) return ((MiniJavaVisitor<? extends T>)visitor).visitProgram(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -349,6 +352,7 @@ public class MiniJavaParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class ClassDeclarationContext extends ParserRuleContext {
 		public Token className;
+		public Token parentClass;
 		public List<TerminalNode> Identifier() { return getTokens(MiniJavaParser.Identifier); }
 		public TerminalNode Identifier(int i) {
 			return getToken(MiniJavaParser.Identifier, i);
@@ -404,7 +408,7 @@ public class MiniJavaParser extends Parser {
 				setState(77);
 				match(T__7);
 				setState(78);
-				match(Identifier);
+				((ClassDeclarationContext)_localctx).parentClass = match(Identifier);
 				}
 			}
 
