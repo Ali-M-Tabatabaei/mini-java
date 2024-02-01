@@ -308,7 +308,7 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterIfElseStatement(MiniJavaParser.IfElseStatementContext ctx) {
         printTab(indent);
-        System.out.println("if (" + ctx.expression().getText() + ") ");
+        System.out.print("if (" + ctx.expression().getText() + ") ");
         indent ++;
     }
 
