@@ -175,28 +175,33 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
-        indent ++;
-        String output = "/t";
-        if( ctx.Override() != null)
+        String output = "\t";
+        if( ctx.Override() != null) {
             output = output.concat(ctx.Override().getText() + "\n\t");
-        if (!ctx.accessModifier().isEmpty())
+        }
+        if (!ctx.accessModifier().isEmpty()) {
             output = output.concat(ctx.accessModifier().getText() + " ");
-        if (ctx.returnType() != null)
+        }
+        if (ctx.returnType() != null) {
             output = output.concat(changeType(ctx.returnType().getText()) + " ");
+        }
 
         output = output.concat(ctx.Identifier().getText() + " (");
-        if (!ctx.parameterList().isEmpty()){
+        if (ctx.parameterList() != null){
             for (int i = 0; i < ctx.parameterList().parameter().size(); i++) {
-                if(!(i == ctx.parameterList().parameter().size() - 1))
+                if(!(i == ctx.parameterList().parameter().size() - 1)) {
                     output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + ", ");
-                else
+                }
+                else {
                     output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + " ) {\n");
+                }
             }
         }else {
             output = output.concat(") {\n");
 
         }
         System.out.println(output);
+        indent ++;
     }
 
     @Override
@@ -279,17 +284,32 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterNestedStatement(MiniJavaParser.NestedStatementContext ctx) {
-
+        if (!nestedBlockForStatement) {
+            printTab(indent);
+            indent ++;
+        }
+        nestedBlockStack.push(nestedBlockForStatement);
+        nestedBlockForStatement = false;
+        System.out.println("{");
     }
 
     @Override
     public void exitNestedStatement(MiniJavaParser.NestedStatementContext ctx) {
-
+        boolean status = nestedBlockStack.pop();
+        if (! status) {
+            indent -= 1;
+            printTab(indent);
+        }else{
+            printTab(indent - 1);
+        }
+        System.out.println("}");
     }
 
     @Override
     public void enterIfElseStatement(MiniJavaParser.IfElseStatementContext ctx) {
-
+        printTab(indent);
+        System.out.println("if (" + ctx.expression().getText() + ") ");
+        indent ++;
     }
 
     @Override
@@ -299,17 +319,32 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterWhileStatement(MiniJavaParser.WhileStatementContext ctx) {
-
+        printTab(indent);
+        String output = "while ( " + ctx.expression().getText() + " ) ";
+        if (! ctx.whileBlock().getText().startsWith("{")) {
+            output = output.concat(" {");
+            System.out.println(output);
+        }else{
+            nestedBlockForStatement = true;
+            System.out.print(output);
+        }
+        indent ++;
     }
 
     @Override
     public void exitWhileStatement(MiniJavaParser.WhileStatementContext ctx) {
-
+        indent --;
+        if (! ctx.whileBlock().getText().startsWith("{")){
+            printTab(indent);
+            System.out.println("}");
+        }
     }
 
     @Override
     public void enterPrintStatement(MiniJavaParser.PrintStatementContext ctx) {
-
+        printTab(indent);
+        String output = "System.out.println ( " + ctx.expression().getText() + " );" ;
+        System.out.println(output);
     }
 
     @Override
@@ -319,7 +354,12 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterVariableAssignmentStatement(MiniJavaParser.VariableAssignmentStatementContext ctx) {
-
+        printTab(indent);
+        String firstPart = (ctx.expression().get(0).start.getText().equals("new")) ? ctx.expression().get(0).start.getText().replace("new", "new ") : ctx.expression().get(0).start.getText();
+        String secondPart = (ctx.expression().get(1).start.getText().equals("new")) ? ctx.expression().get(1).start.getText().replace("new", "new ") : ctx.expression().get(1).start.getText();
+//        String str = this.getExpression(ctx.expression().get(0)) + " = " + this.getExpression(ctx.expression().get(1)) + ";" ;
+        String output = firstPart + " = " + secondPart + ";";
+        System.out.println(output);
     }
 
     @Override
@@ -359,22 +399,41 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterIfBlock(MiniJavaParser.IfBlockContext ctx) {
-
+        if (! ctx.getText().startsWith("{")) {
+            System.out.println("{");
+        }else{
+            nestedBlockForStatement = true;
+        }
     }
 
     @Override
     public void exitIfBlock(MiniJavaParser.IfBlockContext ctx) {
-
+        indent -= 1;
+        if (! ctx.getText().endsWith("}")){
+            printTab(indent);
+            System.out.println("}");
+        }
     }
 
     @Override
     public void enterElseBlock(MiniJavaParser.ElseBlockContext ctx) {
-
+        printTab(indent);
+        indent += 1;
+        System.out.print("else");
+        if (! ctx.getText().startsWith("{")) {
+            System.out.println("{");
+        }else{
+            nestedBlockForStatement = true;
+        }
     }
 
     @Override
     public void exitElseBlock(MiniJavaParser.ElseBlockContext ctx) {
-
+        indent -= 1;
+        if (! ctx.getText().endsWith("}")){
+            printTab(indent);
+            System.out.println("}");
+        }
     }
 
     @Override
