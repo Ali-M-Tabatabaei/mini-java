@@ -6,12 +6,17 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.Stack;
+
 
 public class ProgramPrinter implements MiniJavaListener {
+    public static int indent_level = 0;
+    private boolean nestedBlockForStatement = false;
+    private Stack<Boolean> nestedBlockStack = new Stack<Boolean>();
 
     @Override
     public void enterProgram(MiniJavaParser.ProgramContext ctx) {
-
+        System.out.println("program start: \n");
     }
 
     @Override
@@ -21,7 +26,7 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterMainClass(MiniJavaParser.MainClassContext ctx) {
-
+        
     }
 
     @Override

@@ -1,64 +1,88 @@
-class Classes {
-public static void main(String[] args) {
-Base b;
-Derived d;
-number x;
-b = new Base();
-d = new Derived();
-b = d;
-print(b.set(1));
-print(b.set(3));
+class BubbleSort {
+    public static void main(String[] a){
+	System.out.println(new BBS().Start(10));
+    }
 }
-}
-class Rest implements Nothing{
-}
-class Base inherits Rest implements Face,MyFace{
-number[] data;
-private Rest[] d;
-private number set(number[] x) {
-data = x;
-ret data;
-}
-public number get() {
-ret data;
-}
-private number test(){
-while(1)
-number x;
-number b ;
-{
-number t;
-a = 0;
-b = 5;
-}
-if(true){
-boolean n;
-{
-}
-}
-ret a + b;
-}
-}
-class Derived inherits Base {
-public number set(number x, C d) {
-data = x * 2;
-{
-Base[] t;
-}
-if (a<0)
-number a;
-ret data;
-}
-}
-class Hi {
-private void sayHi(number one, boolean two, Hi three, number four){
-}
-}
-interface Face{
-final number[] a = {1,2};
-number getFace(number s);
-}
-interface MyFace{
-final String myFace= ":)";
-}
+
+class BBS inherits BubbleSort{
+
+    number[] number1 ;
+    number size ;
+
+
+    public number Start(int sz){
+	number aux01 ;
+	aux01 = this.Init(sz);
+	aux01 = this.Print();
+	print(99999);
+	aux01 = this.Sort();
+	aux01 = this.Print();
+	ret 0 ;
+    }
+
+
+    // Sort array of integers using Bublesort method
+    public number Sort(){
+	int nt ;
+	int i ;
+	int aux02 ;
+	int aux04 ;
+	int aux05 ;
+	int aux06 ;
+	int aux07 ;
+	int j ;
+	int t ;
+	i = size - 1 ;
+	aux02 = 0 - 1 ;
+	while (aux02 < i) {
+	    j = 1 ;
+	    //aux03 = i+1 ;
+	    while (j < (i+1)){
+		aux07 = j - 1 ;
+		aux04 = number1[aux07] ;
+		aux05 = number1[j] ;
+		if (aux05 < aux04) {
+		    aux06 = j - 1 ;
+		    t = number1[aux06] ;
+		    number1[aux06] = number1[j] ;
+		    number1[j] = t;
+		}
+		else nt = 0 ;
+		j = j + 1 ;
+	    }
+	    i = i - 1 ;
+	}
+	ret 0 ;
+    }
+
+    // Printing method
+    public int Print(){
+	int j ;
+	j = 0 ;
+	while (j < (size)) {
+	    print(number1[j]);
+	    j = j + 1 ;
+	}
+	ret 0 ;
+    }
+
+    // Initialize array of integers
+    public int Init(number sz){
+	size = sz ;
+	number1 = new number1[sz] ;
+
+	number1[0] = 20 ;
+	number1[1] = 7  ;
+	number1[2] = 12 ;
+	number1[3] = 18 ;
+	number1[4] = 2  ;
+	number1[5] = 11 ;
+	number1[6] = 6  ;
+	number1[7] = 9  ;
+	number1[8] = 19 ;
+	number1[9] = 5  ;
+
+	ret 0 ;
+    }
+
 }

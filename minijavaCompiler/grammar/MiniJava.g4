@@ -1,8 +1,6 @@
 grammar MiniJava;
 
-program
-:	(mainClass) (classDeclaration | interfaceDeclaration)* EOF
-;
+program :	(mainClass) (classDeclaration | interfaceDeclaration)* EOF;
 
 mainClass
 :	'class' className = Identifier '{' mainMethod '}';
