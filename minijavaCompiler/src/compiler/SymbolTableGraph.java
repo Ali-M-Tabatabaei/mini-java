@@ -16,16 +16,20 @@ public class SymbolTableGraph {
         currentNode.addChild(new SymbolNode(name, type, val, currentNode));
     }
 
-    public void addSymbolClass(String SymbolName, String name,  String parent, String val) {
+    public void addSymbolMainClass(String SymbolName, String name,  String parent, String val) {
         currentNode.addChild(new SymbolNode(SymbolName, name, parent, val, currentNode));
+    }
+
+    public void addSymbolClass(String SymbolName, String name,  String parent, String val, ArrayList<String> implementations) {
+        currentNode.addChild(new SymbolNode(SymbolName, name, parent, val, currentNode, implementations));
     }
 
     public void addSymbolField(String SymbolName, String name, String type, Boolean isDefined, String val) {
         currentNode.addChild(new SymbolNode(SymbolName, name, type, isDefined, val, currentNode));
     }
 
-    public void addSymbolMethod(String symbolName, String name, String type, String returnType, List<String> parameterList, String val) {
-        currentNode.addChild(new SymbolNode(symbolName, name, type, returnType, parameterList , val, currentNode));
+    public void addSymbolMethod(String access, String symbolName, String name, String type, String returnType, List<String> parameterList, String val) {
+        currentNode.addChild(new SymbolNode(access, symbolName, name, type, returnType, parameterList , val, currentNode));
     }
 
     public boolean containsSymbol(String name, String symbolName) {
@@ -91,12 +95,14 @@ public class SymbolTableGraph {
         private Boolean isDefined;
         private String returnType;
         private String[] parameterList;
+        private ArrayList<String> implementations;
         private String val;
         private int lineNumber = 0;
         private String symbolName;
         private String parentName;
         private final SymbolNode parent;
         private final List<SymbolNode> children;
+        private String accessModifier ;
 
         public SymbolNode(String name, int lineNumber, SymbolNode parent) {
             this.name = name;
@@ -104,6 +110,8 @@ public class SymbolTableGraph {
             this.parent = parent;
             children = new ArrayList<>();
         }
+
+
 
         public SymbolNode (String name, String type, SymbolNode parent) {
             this.name = name;
@@ -130,8 +138,9 @@ public class SymbolTableGraph {
             children = new ArrayList<>();
         }
 
-        public SymbolNode(String symbolName, String name, String type, String returnType, List<String> parameterList, String val, SymbolNode parent) {
+        public SymbolNode(String access, String symbolName, String name, String type, String returnType, List<String> parameterList, String val, SymbolNode parent) {
             this.name = name;
+            this.accessModifier = access;
             this.type = type;
             this.returnType = returnType;
             this.parameterList = parameterList.toArray(new String[0]);
@@ -150,6 +159,16 @@ public class SymbolTableGraph {
             children = new ArrayList<>();
         }
 
+        public SymbolNode(String symbolName, String name, String parentName, String val, SymbolNode parent, ArrayList<String> implementList) {
+            this.name = name;
+            this.symbolName = symbolName;
+            this.parentName = parentName;
+            this.val = val;
+            this.implementations = implementList;
+            this.parent = parent;
+            children = new ArrayList<>();
+
+        }
 
         public void setDefined(Boolean defined) {
             isDefined = defined;

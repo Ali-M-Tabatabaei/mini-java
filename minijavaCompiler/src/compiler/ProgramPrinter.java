@@ -55,8 +55,8 @@ public class ProgramPrinter implements MiniJavaListener {
         int lineNumber = ctx.getStart().getLine();
         System.out.println("class " + ctx.className.getText() + "{\n");
         indent ++;
-        stg.addSymbolClass(classNameSymbol, className, "object", "Class");
-        stg.enterBlock(className, lineNumber);
+        stg.addSymbolMainClass(classNameSymbol, className, "object", "Class");
+        stg.enterBlock(classNameSymbol, lineNumber);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ProgramPrinter implements MiniJavaListener {
         System.out.println(output);
         ArrayList<String> parameterList = new ArrayList<>();
         parameterList.add(changeType(ctx.type().getText()) + " " + ctx.Identifier().getText());
-        stg.addSymbolMethod("Method_main", "main", "void", "void", parameterList, "Method");
+        stg.addSymbolMethod("public","Method_main", "main", "void", "void", parameterList, "Method");
         stg.enterBlock("Method_main", ctx.getStart().getLine());
 
     }
@@ -86,10 +86,20 @@ public class ProgramPrinter implements MiniJavaListener {
         stg.exitBlock();
     }
 
+    private void classSymbolTableCreation (MiniJavaParser.ClassDeclarationContext ctx, String parent, ArrayList<String> implementations){
+        String className = ctx.className.getText();
+        String classNameSymbol = "Class_" + className;
+        int lineNumber = ctx.getStart().getLine();
+        stg.addSymbolClass(classNameSymbol, className, parent, "Class", implementations);
+        stg.enterBlock(classNameSymbol, lineNumber);
+    }
+
     @Override
     public void enterClassDeclaration(MiniJavaParser.ClassDeclarationContext ctx) {
         String output = "class " + ctx.className.getText();
         String parent = ctx.parentClass.getText();
+        ArrayList<String> implementations = new ArrayList<>();
+
         int hasParent = 1;
         if(!parent.isEmpty()){
             output = output.concat(" extends " + parent);
@@ -102,12 +112,13 @@ public class ProgramPrinter implements MiniJavaListener {
                     stringToConcat = stringToConcat.concat(ctx.Identifier(i).getText());
                 else
                     stringToConcat = stringToConcat.concat(ctx.Identifier(i).getText() + ", ");
+                implementations.add(ctx.Identifier(i).getText());
             }
 
             output = output.concat(" implements " + stringToConcat);
         }
         indent ++;
-
+        classSymbolTableCreation(ctx, parent, implementations);
         System.out.println(output + " {\n");
     }
 
@@ -115,11 +126,17 @@ public class ProgramPrinter implements MiniJavaListener {
     public void exitClassDeclaration(MiniJavaParser.ClassDeclarationContext ctx) {
         System.out.print("}\n");
         indent -= 1;
+        stg.exitBlock();
     }
 
     @Override
     public void enterInterfaceDeclaration(MiniJavaParser.InterfaceDeclarationContext ctx) {
         String output = "interface " + ctx.Identifier().getText() + " {\n";
+        int lineNumber = ctx.getStart().getLine();
+        String className = ctx.Identifier().getText();
+        String classNameSymbol = "Interface_".concat(className);
+        stg.addSymbolMainClass(classNameSymbol, className, "Object", "Class");
+        stg.enterBlock(className, lineNumber);
         System.out.println(output);
         indent ++;
     }
@@ -128,13 +145,17 @@ public class ProgramPrinter implements MiniJavaListener {
     public void exitInterfaceDeclaration(MiniJavaParser.InterfaceDeclarationContext ctx) {
         System.out.print("}\n");
         indent -= 1;
+        stg.exitBlock();
     }
 
     @Override
     public void enterInterfaceMethodDeclaration(MiniJavaParser.InterfaceMethodDeclarationContext ctx) {
         String output = "\t";
+        ArrayList<String> params = new ArrayList<>();
+        String accessModifier = "public";
         if(!ctx.accessModifier().isEmpty()){
             output = output.concat(ctx.accessModifier().getText()+ " ");
+            accessModifier = ctx.accessModifier().getText();
         }
         if(!ctx.returnType().isEmpty()){
             output = output.concat(changeType(ctx.returnType().getText()) + " ");
@@ -146,12 +167,18 @@ public class ProgramPrinter implements MiniJavaListener {
                     output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + ", ");
                 else
                     output = output.concat(ctx.parameterList().parameter().get(i).type().getText() + " " + ctx.parameterList().parameter().get(i).Identifier() + " );\n");
+                params.add(ctx.parameterList().parameter().get(i).type().getText());
             }
         }else {
             output = output.concat(") {\n");
 
         }
+        int lineNumber = ctx.getStart().getLine();
         System.out.println(output);
+        String className = ctx.Identifier().getText();
+        stg.addSymbolMethod(accessModifier, "Method_".concat(className), className, ctx.returnType().getText(), ctx.returnType().getText(), params, "Method");
+        stg.enterBlock(className, lineNumber);
+
     }
 
     @Override
@@ -162,6 +189,7 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterFieldDeclaration(MiniJavaParser.FieldDeclarationContext ctx) {
         String output = "\t";
+
         if(ctx.accessModifier() != null){
             output = output.concat(ctx.accessModifier().getText() + " ");
         }
