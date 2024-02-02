@@ -12,7 +12,7 @@ import java.util.Stack;
 public class ProgramPrinter implements MiniJavaListener {
     private static int indent = 0;
     private boolean nestedBlockForStatement = false;
-    private Stack<Boolean> nestedBlockStack = new Stack<Boolean>();
+    private final Stack<Boolean> nestedBlockStack = new Stack<>();
 
     private String changeType(String type){
         String str = type;
