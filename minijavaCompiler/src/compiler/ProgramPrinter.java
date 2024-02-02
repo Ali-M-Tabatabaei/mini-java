@@ -5,7 +5,7 @@ import gen.MiniJavaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
+import compiler.SymbolTableGraph;
 import java.util.Stack;
 
 
@@ -13,13 +13,18 @@ public class ProgramPrinter implements MiniJavaListener {
     private static int indent = 0;
     private boolean nestedBlockForStatement = false;
     private final Stack<Boolean> nestedBlockStack = new Stack<>();
+    private SymbolTableGraph stg = new SymbolTableGraph();
+    private String currentName = "";
+    private String currentSymbol = "";
+    private String dashes = "---------";
+
+    public void printSymbolTable() {
+        this.stg.printSymbolTable();
+    }
 
     private String changeType(String type){
         String str = type;
-
-        if (str != null) {
-            str = (str.contains("number")) ? str.replace("number", "int") : str;
-        }
+        if (str != null) str = (str.contains("number")) ? str.replace("number", "int") : str;
         return str;
     }
 
@@ -31,23 +36,32 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterProgram(MiniJavaParser.ProgramContext ctx) {
         System.out.println("program start: \n");
+        this.stg.enterBlock("program", ctx.getStart().getLine());
     }
 
     @Override
     public void exitProgram(MiniJavaParser.ProgramContext ctx) {
-
+        this.stg.exitBlock();
+        this.stg.printSymbolTable();
     }
 
     @Override
     public void enterMainClass(MiniJavaParser.MainClassContext ctx) {
+        String className = ctx.className.getText();
+        String classNameSymbol = "Class_" + className;
+        int lineNumber = ctx.getStart().getLine();
         System.out.println("class " + ctx.className.getText() + "{\n");
         indent ++;
+        stg.addSymbolClass(classNameSymbol, className, "object", "Class");
+        stg.enterBlock(className, lineNumber);
+
     }
 
     @Override
     public void exitMainClass(MiniJavaParser.MainClassContext ctx) {
         System.out.println("}\n");
         indent --;
+        stg.exitBlock();
     }
 
     @Override
