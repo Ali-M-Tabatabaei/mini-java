@@ -6,6 +6,9 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import compiler.SymbolTableGraph;
+
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.Stack;
 
 
@@ -48,13 +51,12 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterMainClass(MiniJavaParser.MainClassContext ctx) {
         String className = ctx.className.getText();
-        String classNameSymbol = "Class_" + className;
+        String classNameSymbol = "MainClass_" + className;
         int lineNumber = ctx.getStart().getLine();
         System.out.println("class " + ctx.className.getText() + "{\n");
         indent ++;
         stg.addSymbolClass(classNameSymbol, className, "object", "Class");
         stg.enterBlock(className, lineNumber);
-
     }
 
     @Override
@@ -70,12 +72,18 @@ public class ProgramPrinter implements MiniJavaListener {
         String output = "\tpublic static void main (";
         output = output.concat(changeType(ctx.type().getText()) + " " + ctx.Identifier().getText() + ") {\n");
         System.out.println(output);
+        ArrayList<String> parameterList = new ArrayList<>();
+        parameterList.add(changeType(ctx.type().getText()) + " " + ctx.Identifier().getText());
+        stg.addSymbolMethod("Method_main", "main", "void", "void", parameterList, "Method");
+        stg.enterBlock("Method_main", ctx.getStart().getLine());
+
     }
 
     @Override
     public void exitMainMethod(MiniJavaParser.MainMethodContext ctx) {
         indent --;
         System.out.print("\t}\n");
+        stg.exitBlock();
     }
 
     @Override
@@ -99,6 +107,7 @@ public class ProgramPrinter implements MiniJavaListener {
             output = output.concat(" implements " + stringToConcat);
         }
         indent ++;
+
         System.out.println(output + " {\n");
     }
 
