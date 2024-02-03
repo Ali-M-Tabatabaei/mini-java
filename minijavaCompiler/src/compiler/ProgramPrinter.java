@@ -134,7 +134,7 @@ public class ProgramPrinter implements MiniJavaListener {
         String output = "interface " + ctx.Identifier().getText() + " {\n";
         int lineNumber = ctx.getStart().getLine();
         String className = ctx.Identifier().getText();
-        String classNameSymbol = "Interface_".concat(className);
+        String classNameSymbol = "Interface_" + className;
         stg.addSymbolMainClass(classNameSymbol, className, "Object", "Class");
         stg.enterBlock(className, lineNumber);
         System.out.println(output);
@@ -175,15 +175,15 @@ public class ProgramPrinter implements MiniJavaListener {
         }
         int lineNumber = ctx.getStart().getLine();
         System.out.println(output);
-        String className = ctx.Identifier().getText();
-        stg.addSymbolMethod(accessModifier, "Method_".concat(className), className, ctx.returnType().getText(), ctx.returnType().getText(), params, "Method");
-        stg.enterBlock(className, lineNumber);
+        String methodName = ctx.Identifier().getText();
+        stg.addSymbolMethod(accessModifier, "Method_".concat(methodName), methodName, ctx.returnType().getText(), ctx.returnType().getText(), params, "Method");
+        stg.enterBlock(methodName, lineNumber);
 
     }
 
     @Override
     public void exitInterfaceMethodDeclaration(MiniJavaParser.InterfaceMethodDeclarationContext ctx) {
-
+        stg.exitBlock();
     }
 
     @Override
