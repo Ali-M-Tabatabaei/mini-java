@@ -4,6 +4,18 @@ class BubbleSort {
     }
 }
 
+class A inherits B {
+    number[] number1 ;
+}
+
+class B inherits C {
+    number[] number1 ;
+}
+
+class C inherits A {
+    number[] number1 ;
+}
+
 class BBS inherits BubbleSort implements Ali,Reza {
 
     number[] number1 ;
