@@ -6,15 +6,15 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
-
 
 public class ProgramPrinter implements MiniJavaListener {
     private static int indent = 0;
     private boolean nestedBlockForStatement = false;
     private final Stack<Boolean> nestedBlockStack = new Stack<>();
     private SymbolTableGraph stg;
-
+    private DirectedGraph graph = new DirectedGraph();
 
     private String changeType(String type){
         String str = type;
@@ -36,6 +36,17 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void exitProgram(MiniJavaParser.ProgramContext ctx) {
         this.stg.printSymbolTable();
+        if (graph.hasCycle()) {
+            System.err.println("We have circular dependency .!!");
+            List<String> cycle = graph.findCycle();
+            System.err.println("after");
+            String s = "";
+            for(int i = 0 ; i < cycle.size() ; i++){
+                s += cycle.get(i);
+                s += " -> ";
+            }
+            System.err.println(s);
+        }
     }
 
     @Override
@@ -96,6 +107,7 @@ public class ProgramPrinter implements MiniJavaListener {
         String classNameSymbol = "class_" + className;
         String key = "key = " + classNameSymbol;
         String value = "Value = Class: (name: " + className + ") (extends: " + parent + ")";
+        graph.addEdge(className , parent);
         if(!implementations.isEmpty())
             value = value.concat(" (implements: " + implementations + ")");
 
