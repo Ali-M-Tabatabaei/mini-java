@@ -8,23 +8,20 @@ import java.util.Map;
 
 public class SymbolTable{
     public String name;
-    public int id;
     public SymbolTable parent;
     public int line = 1;
     public Map<String, SymbolTableEntry> symbolTable;
     private List<SymbolTable> children;
 
-    public SymbolTable(String name, int id, SymbolTable parent){
+    public SymbolTable(String name, SymbolTable parent){
         this.symbolTable = new LinkedHashMap<>();
         this.name = name;
-        this.id = id;
         this.parent = parent;
         this.children = new ArrayList<>();
     }
-    public SymbolTable(String name, int id, SymbolTable parent, int line){
+    public SymbolTable(String name, SymbolTable parent, int line){
         this.symbolTable = new LinkedHashMap<>();
         this.name = name;
-        this.id = id;
         this.parent = parent;
         this.line = line;
         this.children = new ArrayList<>();
@@ -43,5 +40,12 @@ public class SymbolTable{
     public SymbolTable addChild(SymbolTable child) {
         children.add(child);
         return child;
+    }
+
+    public SymbolTable getParent() {
+        return parent;
+    }
+    public List<SymbolTable> getChildren() {
+        return children;
     }
 }
