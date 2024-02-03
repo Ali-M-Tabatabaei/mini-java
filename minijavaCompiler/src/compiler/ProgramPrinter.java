@@ -5,9 +5,6 @@ import gen.MiniJavaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import compiler.SymbolTableGraph;
-
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -18,10 +15,6 @@ public class ProgramPrinter implements MiniJavaListener {
     private final Stack<Boolean> nestedBlockStack = new Stack<>();
     private SymbolTableGraph stg;
 
-
-    public void printSymbolTable() {
-        this.stg.printSymbolTable();
-    }
 
     private String changeType(String type){
         String str = type;
@@ -42,7 +35,6 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void exitProgram(MiniJavaParser.ProgramContext ctx) {
-//        this.stg.exitBlock();
         this.stg.printSymbolTable();
     }
 
@@ -159,7 +151,6 @@ public class ProgramPrinter implements MiniJavaListener {
         // creat symbol entry
         int lineNumber = ctx.getStart().getLine();
         String className = ctx.Identifier().getText();
-        String classNameSymbol = "Interface_" + className;
         String key = "Key =  interface_" + className;
         String value = "Value = interface: (name: " + className + ")" ;
         stg.addEntry(key, value);
@@ -176,6 +167,7 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterInterfaceMethodDeclaration(MiniJavaParser.InterfaceMethodDeclarationContext ctx) {
+        // convert to java
         String output = "\t";
         ArrayList<String> params = new ArrayList<>();
         String accessModifier = "public";
@@ -201,21 +193,37 @@ public class ProgramPrinter implements MiniJavaListener {
         }
         int lineNumber = ctx.getStart().getLine();
         System.out.println(output);
-        String methodName = ctx.Identifier().getText();
-//        stg.addSymbolMethod(accessModifier, "Method_".concat(methodName), methodName, ctx.returnType().getText(), ctx.returnType().getText(), params, "Method");
-//        stg.enterBlock(methodName, lineNumber);
 
+        // create symbol table entry
+        String methodName = ctx.Identifier().getText();
+        String key = "key = method_" + methodName;
+        String value = "Value = Method: (name: " + methodName + ")" + "(returnType: " + ctx.returnType().getText() + ") (accessModifier: ACCESS_MODIFIER_" + accessModifier.toUpperCase();
+
+        if(ctx.parameterList() != null){
+            int i = 0;
+            int paramCount = ctx.parameterList().parameter().size();
+            value += " (parametersType: ";
+            for (;i < paramCount; i ++) {
+                if (ctx.parameterList().parameter(i).type().javaType() != null) {
+                    value += "[" + ctx.parameterList().parameter(i).type().getText() + ", " + "index: " + (i + 1) + "]";
+                } else {
+                    value += "[ classType = " + ctx.parameterList().parameter(i).type().Identifier().getText() + ", " + "index: " + (i + 1) + "]";
+                }
+            }
+        }
+        value += ")";
+        stg.addEntry(key, value);
     }
 
     @Override
     public void exitInterfaceMethodDeclaration(MiniJavaParser.InterfaceMethodDeclarationContext ctx) {
-//        stg.exitBlock();
+
     }
 
     @Override
     public void enterFieldDeclaration(MiniJavaParser.FieldDeclarationContext ctx) {
+        // convert to java
         String output = "\t";
-
         if(ctx.accessModifier() != null){
             output = output.concat(ctx.accessModifier().getText() + " ");
         }
@@ -228,8 +236,27 @@ public class ProgramPrinter implements MiniJavaListener {
         }else{
             output = output.concat(";\n");
         }
-
         System.out.print(output);
+
+        // create symbol table entry
+        String key = "key = var_" + ctx.Identifier().getText();
+        String value = "Value = Field: (name: " + ctx.Identifier().getText() + ")";
+        if(ctx.type().LSB() != null){
+            value += " (type: array of " ;
+        }
+        else {
+            value += " (type: ";
+        }
+        if(ctx.type().Identifier() != null){
+            value += "[ classType: " + ctx.type().Identifier().getText() + " ])";
+        }
+        else {
+            value += ctx.type().javaType().getText() + ")";
+        }
+        if(ctx.accessModifier() != null){
+            value += " (accesModifier: " + ctx.accessModifier().getText() + ")";
+        }
+        stg.addEntry(key, value);
     }
 
 
@@ -241,8 +268,28 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterLocalDeclaration(MiniJavaParser.LocalDeclarationContext ctx) {
+//        convert to java
         printTab(indent);
         System.out.println(changeType(ctx.type().getText()) + " " + ctx.Identifier() + ";");
+
+        // create symbol table entry
+        String key = ctx.Identifier().getText();
+        String value = "Value = Localvar: (name: " + ctx.Identifier().getText() + ")";
+
+        if(ctx.type().LSB() != null){
+            value += " (type: array of ";
+        }
+        else {
+            value += " (type: ";
+        }
+
+        if(ctx.type().javaType() != null){
+            value += ctx.type().javaType().getText() + ")";
+        }
+        else {
+            value += "[ classType: " + ctx.type().Identifier().getText() + " ])";
+        }
+        stg.addEntry(key, value);
     }
 
     @Override
@@ -250,8 +297,35 @@ public class ProgramPrinter implements MiniJavaListener {
 
     }
 
+    private void createMethodEntry(MiniJavaParser.MethodDeclarationContext ctx){
+        String accessModifier = "public";
+        if(!ctx.accessModifier().isEmpty())
+            accessModifier = ctx.accessModifier().getText();
+
+        String methodName = ctx.Identifier().getText();
+        String key = "key = method_" + methodName;
+        StringBuilder value = new StringBuilder("Value = Method: (name: " + methodName + ")" + "(returnType: " + ctx.returnType().getText() + ") (accessModifier: ACCESS_MODIFIER_" + accessModifier.toUpperCase());
+
+        if(ctx.parameterList() != null){
+            int i = 0;
+            int paramCount = ctx.parameterList().parameter().size();
+            value.append(" (parametersType: ");
+            for (;i < paramCount; i ++) {
+                if (ctx.parameterList().parameter(i).type().javaType() != null) {
+                    value.append("[").append(ctx.parameterList().parameter(i).type().getText()).append(", ").append("index: ").append(i + 1).append("]");
+                } else {
+                    value.append("[ classType = ").append(ctx.parameterList().parameter(i).type().Identifier().getText()).append(", ").append("index: ").append(i + 1).append("]");
+                }
+            }
+        }
+        value.append(")");
+        stg.addEntry(key, value.toString());
+        stg.enterBlock(methodName, ctx.getStart().getLine());
+    }
+
     @Override
     public void enterMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
+        // convert to java
         String output = "\t";
         if( ctx.Override() != null) {
             output = output.concat(ctx.Override().getText() + "\n\t");
@@ -279,6 +353,10 @@ public class ProgramPrinter implements MiniJavaListener {
         }
         System.out.println(output);
         indent ++;
+
+        // create symbol table entry and symbol table
+        createMethodEntry(ctx);
+
     }
 
     @Override
@@ -287,6 +365,8 @@ public class ProgramPrinter implements MiniJavaListener {
         if (ctx.methodBody().RETURN() != null)
             System.out.println("\t\treturn " + ctx.methodBody().expression().getText() + ";");
         System.out.print("\t}\n");
+
+        stg.exitBlock();
     }
 
     @Override
@@ -301,7 +381,22 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterParameter(MiniJavaParser.ParameterContext ctx) {
+        String key = "Key = var_" + ctx.Identifier().getText();
+        String value = "value = Parameter: (name: " + ctx.Identifier().getText() + ")";
+        if(ctx.type().LSB() != null){
+            value += " (type: array of ";
+        }
+        else {
+            value += " (type: ";
+        }
 
+        if(ctx.type().javaType() != null){
+            value += ctx.type().javaType().getText() + ")";
+        }
+        else {
+            value += "[ classType: " + ctx.type().Identifier().getText() + "])";
+        }
+        stg.addEntry(key, value);
     }
 
     @Override
@@ -476,11 +571,15 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterIfBlock(MiniJavaParser.IfBlockContext ctx) {
+        // convert to java
         if (! ctx.getText().startsWith("{")) {
             System.out.println("{");
         }else{
             nestedBlockForStatement = true;
         }
+
+        // create symbol table
+        stg.enterBlock("if", ctx.getStart().getLine());
     }
 
     @Override
@@ -490,6 +589,7 @@ public class ProgramPrinter implements MiniJavaListener {
             printTab(indent);
             System.out.println("}");
         }
+        stg.exitBlock();
     }
 
     @Override
