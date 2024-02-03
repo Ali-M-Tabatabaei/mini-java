@@ -602,6 +602,7 @@ public class ProgramPrinter implements MiniJavaListener {
         }else{
             nestedBlockForStatement = true;
         }
+        stg.enterBlock("else", ctx.getStart().getLine());
     }
 
     @Override
@@ -611,16 +612,18 @@ public class ProgramPrinter implements MiniJavaListener {
             printTab(indent);
             System.out.println("}");
         }
+        stg.exitBlock();
     }
 
     @Override
     public void enterWhileBlock(MiniJavaParser.WhileBlockContext ctx) {
+        stg.enterBlock("while", ctx.getStart().getLine());
 
     }
 
     @Override
     public void exitWhileBlock(MiniJavaParser.WhileBlockContext ctx) {
-
+        stg.exitBlock();
     }
 
     @Override
