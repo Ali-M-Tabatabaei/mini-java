@@ -16,10 +16,8 @@ public class ProgramPrinter implements MiniJavaListener {
     private static int indent = 0;
     private boolean nestedBlockForStatement = false;
     private final Stack<Boolean> nestedBlockStack = new Stack<>();
-    private SymbolTableGraph stg = new SymbolTableGraph();
-    private String currentName = "";
-    private String currentSymbol = "";
-    private String dashes = "---------";
+    private SymbolTableGraph stg;
+
 
     public void printSymbolTable() {
         this.stg.printSymbolTable();
@@ -39,86 +37,108 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterProgram(MiniJavaParser.ProgramContext ctx) {
         System.out.println("program start: \n");
-        this.stg.enterBlock("program", ctx.getStart().getLine());
+        this.stg = new SymbolTableGraph();
     }
 
     @Override
     public void exitProgram(MiniJavaParser.ProgramContext ctx) {
-        this.stg.exitBlock();
+//        this.stg.exitBlock();
         this.stg.printSymbolTable();
     }
 
     @Override
     public void enterMainClass(MiniJavaParser.MainClassContext ctx) {
+        // convert to java
         String className = ctx.className.getText();
-        String classNameSymbol = "MainClass_" + className;
-        int lineNumber = ctx.getStart().getLine();
         System.out.println("class " + ctx.className.getText() + "{\n");
         indent ++;
-        stg.addSymbolMainClass(classNameSymbol, className, "object", "Class");
-        stg.enterBlock(classNameSymbol, lineNumber);
+
+        // Symbol table entry
+        String key =  "Key = MainClass_" + className;
+        String value = "MainClass: (name: " + ctx.className.getText() + ")";
+        stg.addEntry(key, value);
+
+        // symbol table creation
+        int lineNumber = ctx.getStart().getLine();
+        stg.enterBlock(className, lineNumber);
     }
 
     @Override
     public void exitMainClass(MiniJavaParser.MainClassContext ctx) {
+        // convert to java
         System.out.println("}\n");
         indent --;
+
+        // changing scope
         stg.exitBlock();
     }
 
     @Override
     public void enterMainMethod(MiniJavaParser.MainMethodContext ctx) {
+        // convert to java
         indent ++;
         String output = "\tpublic static void main (";
         output = output.concat(changeType(ctx.type().getText()) + " " + ctx.Identifier().getText() + ") {\n");
         System.out.println(output);
-        ArrayList<String> parameterList = new ArrayList<>();
-        parameterList.add(changeType(ctx.type().getText()) + " " + ctx.Identifier().getText());
-        stg.addSymbolMethod("public","Method_main", "main", "void", "void", parameterList, "Method");
-        stg.enterBlock("Method_main", ctx.getStart().getLine());
 
+        // Symbol table entry
+        String key = "Key = method_main";
+        String value = "Value = Method: (name: main) (returnType: void) (accessModifier: public) (parametersType: [array of [classType = String, isDefined = true] , index: 1] )";
+        stg.addEntry(key, value);
+        // symbol table creation
+        stg.enterBlock("main", ctx.getStart().getLine());
     }
 
     @Override
     public void exitMainMethod(MiniJavaParser.MainMethodContext ctx) {
+        // convert to java
         indent --;
         System.out.print("\t}\n");
+        // changing scope
         stg.exitBlock();
     }
 
-    private void classSymbolTableCreation (MiniJavaParser.ClassDeclarationContext ctx, String parent, ArrayList<String> implementations){
+    private void classSymbolTableCreation (MiniJavaParser.ClassDeclarationContext ctx, String parent, String implementations){
+        // create symbol entry
         String className = ctx.className.getText();
-        String classNameSymbol = "Class_" + className;
+        String classNameSymbol = "class_" + className;
+        String key = "key = " + classNameSymbol;
+        String value = "Value = Class: (name: " + className + ") (extends: " + parent + ")";
+        if(!implementations.isEmpty())
+            value = value.concat(" (implements: " + implementations + ")");
+
         int lineNumber = ctx.getStart().getLine();
-        stg.addSymbolClass(classNameSymbol, className, parent, "Class", implementations);
-        stg.enterBlock(classNameSymbol, lineNumber);
+        stg.addEntry(key, value);
+
+        // symbol table creation
+        stg.enterBlock(className, lineNumber);
     }
 
     @Override
     public void enterClassDeclaration(MiniJavaParser.ClassDeclarationContext ctx) {
+        // convert to java
         String output = "class " + ctx.className.getText();
         String parent = ctx.parentClass.getText();
-        ArrayList<String> implementations = new ArrayList<>();
 
         int hasParent = 1;
         if(!parent.isEmpty()){
             output = output.concat(" extends " + parent);
             hasParent ++;
-        }
+        } else
+            parent = "Object";
+
+        String stringToConcat = "";
         if(ctx.getText().contains("implements")){
-            String stringToConcat = "";
             for (int i = hasParent; i < ctx.Identifier().size(); i++) {
                 if (i == ctx.Identifier().size() -1)
                     stringToConcat = stringToConcat.concat(ctx.Identifier(i).getText());
                 else
                     stringToConcat = stringToConcat.concat(ctx.Identifier(i).getText() + ", ");
-                implementations.add(ctx.Identifier(i).getText());
             }
-
             output = output.concat(" implements " + stringToConcat);
         }
         indent ++;
-        classSymbolTableCreation(ctx, parent, implementations);
+        classSymbolTableCreation(ctx, parent, stringToConcat);
         System.out.println(output + " {\n");
     }
 
@@ -131,14 +151,20 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterInterfaceDeclaration(MiniJavaParser.InterfaceDeclarationContext ctx) {
+        // convert to java
         String output = "interface " + ctx.Identifier().getText() + " {\n";
+        System.out.println(output);
+        indent ++;
+
+        // creat symbol entry
         int lineNumber = ctx.getStart().getLine();
         String className = ctx.Identifier().getText();
         String classNameSymbol = "Interface_" + className;
-        stg.addSymbolMainClass(classNameSymbol, className, "Object", "Class");
+        String key = "Key =  interface_" + className;
+        String value = "Value = interface: (name: " + className + ")" ;
+        stg.addEntry(key, value);
+
         stg.enterBlock(className, lineNumber);
-        System.out.println(output);
-        indent ++;
     }
 
     @Override
@@ -176,14 +202,14 @@ public class ProgramPrinter implements MiniJavaListener {
         int lineNumber = ctx.getStart().getLine();
         System.out.println(output);
         String methodName = ctx.Identifier().getText();
-        stg.addSymbolMethod(accessModifier, "Method_".concat(methodName), methodName, ctx.returnType().getText(), ctx.returnType().getText(), params, "Method");
-        stg.enterBlock(methodName, lineNumber);
+//        stg.addSymbolMethod(accessModifier, "Method_".concat(methodName), methodName, ctx.returnType().getText(), ctx.returnType().getText(), params, "Method");
+//        stg.enterBlock(methodName, lineNumber);
 
     }
 
     @Override
     public void exitInterfaceMethodDeclaration(MiniJavaParser.InterfaceMethodDeclarationContext ctx) {
-        stg.exitBlock();
+//        stg.exitBlock();
     }
 
     @Override

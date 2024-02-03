@@ -12,8 +12,9 @@ public class SymbolTableGraph {
         currentNode = rootNode;
     }
 
-    public void addSymbolTable(String name, int line) {
-        currentNode.addChild(new SymbolTable(name, currentNode, line));
+    public void addEntry(String key, String value) {
+        SymbolTableEntry entry = new SymbolTableEntry(key, value);
+        currentNode.symbolTable.put(key, entry);
     }
 
     public void enterBlock(String name, int lineNumber) {
