@@ -4,20 +4,6 @@ import java.util.*;
 
 public class DirectedGraph {
 
-//    public static void main(String[] args) {
-//        DirectedGraph graph = new DirectedGraph();
-//        graph.addEdge("0", "1");
-//        graph.addEdge("1", "2");
-//        graph.addEdge("2", "0"); // Creates a cycle
-//
-//        if (graph.hasCycle()) {
-//            System.out.println("Graph has a cycle");
-//        } else {
-//            System.out.println("Graph is acyclic");
-//        }
-//
-//    }
-
     Map<String, List<String>> adjacencyList;
 
     public DirectedGraph() {
@@ -34,15 +20,27 @@ public class DirectedGraph {
         Map<String, Boolean> recStack = new HashMap<>();
 
         for (String vertex : adjacencyList.keySet()) {
-            if (hasCycleUtil(vertex, visited, recStack)) {
+            if (hasCycleUtil(vertex, visited, recStack, new ArrayList<>())) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean hasCycleUtil(String vertex, Map<String, Boolean> visited, Map<String, Boolean> recStack) {
+    // Function to return all nodes in a cycle
+    public List<String> findAllCycleNodes() {
+        for (String vertex : adjacencyList.keySet()) {
+            List<String> cycleNodes = new ArrayList<>();
+            if (hasCycleUtil(vertex, new HashMap<>(), new HashMap<>(), cycleNodes)) {
+                return cycleNodes;
+            }
+        }
+        return Collections.emptyList(); // No cycle found
+    }
+
+    private boolean hasCycleUtil(String vertex, Map<String, Boolean> visited, Map<String, Boolean> recStack, List<String> cycleNodes) {
         if (recStack.getOrDefault(vertex, false)) {
+            cycleNodes.add(vertex); // Add the cycle-forming node
             return true; // Cycle found
         }
 
@@ -52,64 +50,16 @@ public class DirectedGraph {
 
         visited.put(vertex, true);
         recStack.put(vertex, true);
+        cycleNodes.add(vertex); // Temporarily add for potential cycle
 
         for (String neighbor : adjacencyList.getOrDefault(vertex, Collections.emptyList())) {
-            if (hasCycleUtil(neighbor, visited, recStack)) {
+            if (hasCycleUtil(neighbor, visited, recStack, cycleNodes)) {
                 return true;
             }
         }
 
-        recStack.put(vertex, false); // Backtrack
+        cycleNodes.remove(vertex); // Backtrack
+        recStack.put(vertex, false);
         return false;
-    }
-
-
-    public List<String> findCycle() {
-        Map<String, Boolean> visited = new HashMap<>();
-        Map<String, Boolean> recStack = new HashMap<>();
-        Map<String, String> parentMap = new HashMap<>(); // Track parents for cycle reconstruction
-
-        for (String vertex : adjacencyList.keySet()) {
-            List<String> cycle = findCycleUtil(vertex, visited, recStack, parentMap);
-            if (cycle != null) {
-                return cycle;
-            }
-        }
-        return null;
-    }
-
-    private List<String> findCycleUtil(String vertex, Map<String, Boolean> visited,
-                                       Map<String, Boolean> recStack, Map<String, String> parentMap) {
-        if (recStack.getOrDefault(vertex, false)) {
-            // Cycle found, reconstruct it
-            List<String> cycle = new ArrayList<>();
-            String node = vertex;
-            cycle.add(node);
-            while (parentMap.get(node) != null && !node.equals(parentMap.get(node))) {
-                node = parentMap.get(node);
-                cycle.add(node);
-            }
-            cycle.add(vertex); // Close the cycle
-            Collections.reverse(cycle); // Return in correct order
-            return cycle;
-        }
-
-        if (visited.getOrDefault(vertex, false)) {
-            return null; // Already visited, no cycle
-        }
-
-        visited.put(vertex, true);
-        recStack.put(vertex, true);
-
-        for (String neighbor : adjacencyList.getOrDefault(vertex, Collections.emptyList())) {
-            parentMap.put(neighbor, vertex); // Track parent for cycle reconstruction
-            List<String> cycle = findCycleUtil(neighbor, visited, recStack, parentMap);
-            if (cycle != null) {
-                return cycle;
-            }
-        }
-
-        recStack.put(vertex, false); // Backtrack
-        return null;
     }
 }
