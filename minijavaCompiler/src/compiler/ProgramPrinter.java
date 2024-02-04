@@ -36,17 +36,7 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void exitProgram(MiniJavaParser.ProgramContext ctx) {
         this.stg.printSymbolTable();
-        List<String> cycle = graph.findAllCycleNodes();
-        if (cycle.size() > 0) {
-            System.err.println("We have circular dependency .!!");
-            String cycleOfNodes = "";
-            for(int i = 0 ; i < cycle.size() ; i++){
-                cycleOfNodes += cycle.get(i);
-                if (i < cycle.size() - 1)
-                    cycleOfNodes += " -> ";
-            }
-            System.err.println(cycleOfNodes);
-        }
+        detectAllErrorsInCode();
     }
 
     @Override
@@ -866,5 +856,23 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void exitEveryRule(ParserRuleContext parserRuleContext) {
 
+    }
+
+
+    private void detectAllErrorsInCode(){
+        invalidInheritance();
+    }
+
+    private void invalidInheritance(){
+        List<String> cycle = graph.findAllCycleNodes();
+        if (cycle.size() > 0) {
+            String errorMessage = "Error410 : Invalid inheritance ";
+            for(int i = 0 ; i < cycle.size() ; i++){
+                errorMessage += cycle.get(i);
+                if (i < cycle.size() - 1)
+                    errorMessage += " -> ";
+            }
+            System.err.println(errorMessage);
+        }
     }
 }
