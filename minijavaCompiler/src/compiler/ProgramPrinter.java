@@ -98,8 +98,10 @@ public class ProgramPrinter implements MiniJavaListener {
         String key = "key = " + classNameSymbol;
         String value = "Value = Class: (name: " + className + ") (extends: " + parent + ")";
         graph.addEdge(className , parent);
-        if(!implementations.isEmpty())
+        if(!implementations.isEmpty()) {
             value = value.concat(" (implements: " + implementations + ")");
+            miniJavaClassDetail.addImplemente(className , implementations);
+        }
 
         int lineNumber = ctx.getStart().getLine();
         stg.addEntry(key, value);
@@ -214,6 +216,7 @@ public class ProgramPrinter implements MiniJavaListener {
             }
         }
         value += ")";
+        miniJavaClassDetail.addMethod(stg.getCurentNodeName(), methodName);
         stg.addEntry(key, value);
     }
 
@@ -305,6 +308,7 @@ public class ProgramPrinter implements MiniJavaListener {
             accessModifier = ctx.accessModifier().getText();
 
         String methodName = ctx.Identifier().getText();
+        miniJavaClassDetail.addMethod(stg.getCurentNodeName(), methodName);
         String key = "key = method_" + methodName;
         StringBuilder value = new StringBuilder("Value = Method: (name: " + methodName + ")" + "(returnType: " + ctx.returnType().getText() + ") (accessModifier: ACCESS_MODIFIER_" + accessModifier.toUpperCase());
 
@@ -861,6 +865,12 @@ public class ProgramPrinter implements MiniJavaListener {
 
     private void detectAllErrorsInCode(){
         invalidInheritance();
+        try {
+            miniJavaClassDetail.checkImplementagtion();
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+
     }
 
     private void invalidInheritance(){
