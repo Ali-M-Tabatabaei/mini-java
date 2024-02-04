@@ -36,16 +36,16 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void exitProgram(MiniJavaParser.ProgramContext ctx) {
         this.stg.printSymbolTable();
-        if (graph.hasCycle()) {
+        List<String> cycle = graph.findAllCycleNodes();
+        if (cycle.size() > 0) {
             System.err.println("We have circular dependency .!!");
-            List<String> cycle = graph.findCycle();
-            System.err.println("after");
-            String s = "";
+            String cycleOfNodes = "";
             for(int i = 0 ; i < cycle.size() ; i++){
-                s += cycle.get(i);
-                s += " -> ";
+                cycleOfNodes += cycle.get(i);
+                if (i < cycle.size() - 1)
+                    cycleOfNodes += " -> ";
             }
-            System.err.println(s);
+            System.err.println(cycleOfNodes);
         }
     }
 
