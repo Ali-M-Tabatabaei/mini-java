@@ -35,11 +35,15 @@ public class SymbolTableGraph {
             printNode(child);
         }
     }
+    public SymbolTable getCurrentNode(){
+        return currentNode;
+    }
 
     public String getCurentNodeName(){
         return this.currentNode.name;
     }
 
 }
+
 
 

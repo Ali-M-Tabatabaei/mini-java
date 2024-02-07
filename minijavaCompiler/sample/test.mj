@@ -6,10 +6,22 @@ class BubbleSort {
 
 class A inherits B {
     number[] number1 ;
+    @Override
+    private int ali(){
+        number mamad;
+        ret 1;
+
+    }
+
 }
 
 class B inherits C {
     number[] number1 ;
+     public int ali(){
+            number mamad;
+            ret 1;
+
+       }
 }
 
 class C inherits A {

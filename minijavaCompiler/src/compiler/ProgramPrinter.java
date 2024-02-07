@@ -11,6 +11,8 @@ import java.util.Stack;
 
 public class ProgramPrinter implements MiniJavaListener {
     private static int indent = 0;
+
+    private static String errorMessages = null;
     private boolean nestedBlockForStatement = false;
     private final Stack<Boolean> nestedBlockStack = new Stack<>();
     private SymbolTableGraph stg;
@@ -216,7 +218,7 @@ public class ProgramPrinter implements MiniJavaListener {
             }
         }
         value += ")";
-        miniJavaClassDetail.addMethod(stg.getCurentNodeName(), methodName);
+        miniJavaClassDetail.addMethod(stg.getCurentNodeName(), methodName , "public");
         stg.addEntry(key, value);
     }
 
@@ -308,7 +310,7 @@ public class ProgramPrinter implements MiniJavaListener {
             accessModifier = ctx.accessModifier().getText();
 
         String methodName = ctx.Identifier().getText();
-        miniJavaClassDetail.addMethod(stg.getCurentNodeName(), methodName);
+        miniJavaClassDetail.addMethod(stg.getCurentNodeName(), methodName , ctx.accessModifier().getText());
         String key = "key = method_" + methodName;
         StringBuilder value = new StringBuilder("Value = Method: (name: " + methodName + ")" + "(returnType: " + ctx.returnType().getText() + ") (accessModifier: ACCESS_MODIFIER_" + accessModifier.toUpperCase());
 
@@ -335,6 +337,14 @@ public class ProgramPrinter implements MiniJavaListener {
         String output = "\t";
         if( ctx.Override() != null) {
             output = output.concat(ctx.Override().getText() + "\n\t");
+            String parentClass = ctx.getParent().getText().split("inherits")[1].split("\\{")[0];
+            if (ctx.accessModifier() != null ){
+                if (ctx.accessModifier().getText().equals("private")){
+                    if( miniJavaClassDetail.getMethod(parentClass , ctx.Identifier().getText())){
+                        errorMessages = "Error320 : in line " + ctx.getStart().getLine() + ", the access level cannot be more restrictive than the overridden method's access level.";
+                    }
+                }
+            }
         }
         if (!ctx.accessModifier().isEmpty()) {
             output = output.concat(ctx.accessModifier().getText() + " ");
@@ -375,6 +385,7 @@ public class ProgramPrinter implements MiniJavaListener {
         System.out.print("\t}\n");
 
         stg.exitBlock();
+
     }
 
     @Override
@@ -870,6 +881,8 @@ public class ProgramPrinter implements MiniJavaListener {
         }catch (Exception e){
             System.err.println(e.getMessage());
         }
+        if (errorMessages != null)
+            System.err.println(errorMessages);
 
     }
 

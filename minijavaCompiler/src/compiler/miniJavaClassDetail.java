@@ -13,15 +13,25 @@ public class miniJavaClassDetail {
     public static void addImplemente(String className, String interfaces){
         implementations.put(className , interfaces.split(","));
     }
-    public static void addMethod(String name , String methodName){
+    public static void addMethod(String name , String methodName , String accessType){
         List<String> localMethods = new ArrayList<String>();
         if (methods.containsKey(name)){
             localMethods = methods.get(name);
         }
-        localMethods.add(methodName);
+        localMethods.add(accessType + "_" + methodName);
         methods.put(name , localMethods);
     }
-
+    public static boolean getMethod(String ClassName , String Method){
+        List<String> localMethods = methods.get(ClassName);
+        if (localMethods == null)
+            return true;
+        for (String classNameMethodName : localMethods){
+            if (classNameMethodName.equals(Method)  && Method.equals("public") ){
+                return false;
+            }
+        }
+        return true;
+    }
     public static void checkImplementagtion() throws Exception{
         for (Map.Entry<String, String[]> entry : implementations.entrySet()) {
             String className = entry.getKey();

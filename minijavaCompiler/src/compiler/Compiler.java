@@ -24,12 +24,12 @@ public class Compiler{
                 parser.setBuildParseTree(true);
                 ParseTree tree = parser.program();
                 ParseTreeWalker walker = new ParseTreeWalker();
-                MiniJavaListener listener = new ProgramOptimizer();
+                MiniJavaListener listener = new ProgramPrinter();
 
 
                 walker.walk(listener, tree);
 
-                walker.walk(listener, tree);
+//                walker.walk(listener, tree);
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
