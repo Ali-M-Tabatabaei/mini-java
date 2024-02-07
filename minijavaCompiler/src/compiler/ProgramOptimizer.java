@@ -408,13 +408,7 @@ public class ProgramOptimizer implements MiniJavaListener {
         if (print_enable && !block_print_disable) {
             if ((currentScope.peek().symbolTable.containsKey(key) && currentScope.peek().symbolTable.get(key).value) || currentScope.peek().name.contains("interface")){
                 if (ctx.expression() != null) {
-//                    int constantFoldingResult = constantFolding(ctx.expression());
-//                    if (constantFoldingResult == Integer.MAX_VALUE) {
-//                        printTree(ctx, ";");
-//                    } else {
-//                        tabPrint(indent_level);
-//                        System.out.println(getSubTree(ctx, "=") + constantFoldingResult + " ;");
-//                    }
+
                     System.out.println(getSubTree(ctx, "=") + getExpression(ctx.expression()) + " ;");
                 }else{
                     printTree(ctx, ";");
@@ -475,15 +469,7 @@ public class ProgramOptimizer implements MiniJavaListener {
             setVariablesSeen(getExpressionUsedVariables(ctx.methodBody().expression(), new ArrayList<String>()));
         }else{
             if (ctx.methodBody().expression() != null) {
-//                int constantFoldingResult = constantFolding(ctx.methodBody().expression());
-//                if (constantFoldingResult == Integer.MAX_VALUE) {
-//                    tabPrint(indent_level);
-//                    System.out.println("ret " + ctx.methodBody().expression().getText() + " ;");
-//
-//                } else {
-//                    tabPrint(indent_level);
-//                    System.out.println("ret " + constantFoldingResult + " ;");
-//                }
+
                 tabPrint(indent_level);
                 System.out.println("ret " + getExpression(ctx.methodBody().expression()) + " ;");
             }
@@ -593,25 +579,7 @@ public class ProgramOptimizer implements MiniJavaListener {
     @Override
     public void enterIfElseStatement(MiniJavaParser.IfElseStatementContext ctx) {
         if (print_enable && !block_print_disable){
-//            int constantFoldingResult = constantFolding(ctx.expression());
-//            if (constantFoldingResult == Integer.MAX_VALUE) {
-//                if (ctx.expression().getText().equals("false")) {
-//                    block_print_disable = true;
-//                    disable_block_id = currentScope.peek().id ;
-//                    if_condition = getSubTree(ctx, ")");
-//                }else {
-//                    printTree(ctx, ")");
-//                }
-//            } else {
-//                if (constantFoldingResult == 0) {
-//                    block_print_disable = true;
-//                    disable_block_id = currentScope.peek().id ;
-//                    if_condition = getSubTree(ctx, ")");
-//                }else {
-//                    tabPrint(indent_level);
-//                    System.out.println(getSubTree(ctx, "( ") + constantFoldingResult + " )");
-//                }
-//            }
+
             String exp = getExpression(ctx.expression());
             if (exp.equals("false") || exp.equals("0")){
                 block_print_disable = true;
@@ -634,23 +602,6 @@ public class ProgramOptimizer implements MiniJavaListener {
     @Override
     public void enterWhileStatement(MiniJavaParser.WhileStatementContext ctx) {
         if (print_enable && !block_print_disable){
-//            int constantFoldingResult = constantFolding(ctx.expression());
-//            if (constantFoldingResult == Integer.MAX_VALUE) {
-//                if (ctx.expression().getText().equals("false")){
-//                    block_print_disable = true;
-//                    disable_block_id = this.currentScope.peek().id ;
-//                }else {
-//                    printTree(ctx, ")");
-//                }
-//            } else {
-//                if (constantFoldingResult == 0){
-//                    block_print_disable = true;
-//                    disable_block_id = this.currentScope.peek().id ;
-//                }else {
-//                    tabPrint(indent_level);
-//                    System.out.println(getSubTree(ctx, "(") + constantFoldingResult + " )");
-//                }
-//            }
             String exp = getExpression(ctx.expression());
             if (exp.equals("false") || exp.equals("0")){
                 block_print_disable = true;
@@ -673,13 +624,6 @@ public class ProgramOptimizer implements MiniJavaListener {
     @Override
     public void enterPrintStatement(MiniJavaParser.PrintStatementContext ctx) {
         if (print_enable && !block_print_disable){
-//            int constantFoldingResult = constantFolding(ctx.expression());
-//            if (constantFoldingResult == Integer.MAX_VALUE) {
-//                printTree(ctx, ";");
-//            } else {
-//                tabPrint(indent_level);
-//                System.out.println(getSubTree(ctx, "(") + constantFoldingResult + " ) ;");
-//            }
             tabPrint(indent_level);
             System.out.println(getSubTree(ctx, "(") + getExpression(ctx.expression()) + " ) ;");
         }else {
