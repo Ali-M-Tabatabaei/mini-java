@@ -357,6 +357,8 @@ public class ProgramPrinter implements MiniJavaListener {
             output = output.concat(") {\n");
 
         }
+        if(ctx.Override().getText() != null)
+            System.out.println(ctx.Override().getText());
         System.out.println(output);
         indent ++;
 
