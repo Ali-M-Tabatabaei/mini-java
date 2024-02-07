@@ -36,6 +36,10 @@ public class SymbolTableGraph {
         }
     }
 
+    public String getCurentNodeName(){
+        return this.currentNode.name;
+    }
+
 }
 
 

@@ -6,15 +6,15 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
-
 
 public class ProgramPrinter implements MiniJavaListener {
     private static int indent = 0;
     private boolean nestedBlockForStatement = false;
     private final Stack<Boolean> nestedBlockStack = new Stack<>();
     private SymbolTableGraph stg;
-
+    private DirectedGraph graph = new DirectedGraph();
 
     private String changeType(String type){
         String str = type;
@@ -36,6 +36,7 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void exitProgram(MiniJavaParser.ProgramContext ctx) {
         this.stg.printSymbolTable();
+        detectAllErrorsInCode();
     }
 
     @Override
@@ -96,8 +97,11 @@ public class ProgramPrinter implements MiniJavaListener {
         String classNameSymbol = "class_" + className;
         String key = "key = " + classNameSymbol;
         String value = "Value = Class: (name: " + className + ") (extends: " + parent + ")";
-        if(!implementations.isEmpty())
+        graph.addEdge(className , parent);
+        if(!implementations.isEmpty()) {
             value = value.concat(" (implements: " + implementations + ")");
+            miniJavaClassDetail.addImplemente(className , implementations);
+        }
 
         int lineNumber = ctx.getStart().getLine();
         stg.addEntry(key, value);
@@ -212,6 +216,7 @@ public class ProgramPrinter implements MiniJavaListener {
             }
         }
         value += ")";
+        miniJavaClassDetail.addMethod(stg.getCurentNodeName(), methodName);
         stg.addEntry(key, value);
     }
 
@@ -232,7 +237,7 @@ public class ProgramPrinter implements MiniJavaListener {
         }
         output = output.concat(changeType(ctx.type().getText()) + " " + ctx.Identifier().getText() + " ");
         if (ctx.EQ() != null){
-            output = (ctx.expression().start.getText().equals("new")) ? output.concat(ctx.EQ().getText() + " " + ctx.expression().getText().replace("new", "new ") + " ;\n") : output.concat(ctx.EQ().getText() + " " + ctx.expression().getText() + " ;\n");
+            output = output.concat(ctx.EQ().getText() + " " + this.expressionHandler(ctx.expression()) + " ;\n");
         }else{
             output = output.concat(";\n");
         }
@@ -303,6 +308,7 @@ public class ProgramPrinter implements MiniJavaListener {
             accessModifier = ctx.accessModifier().getText();
 
         String methodName = ctx.Identifier().getText();
+        miniJavaClassDetail.addMethod(stg.getCurentNodeName(), methodName);
         String key = "key = method_" + methodName;
         StringBuilder value = new StringBuilder("Value = Method: (name: " + methodName + ")" + "(returnType: " + ctx.returnType().getText() + ") (accessModifier: ACCESS_MODIFIER_" + accessModifier.toUpperCase());
 
@@ -351,6 +357,8 @@ public class ProgramPrinter implements MiniJavaListener {
             output = output.concat(") {\n");
 
         }
+        if(ctx.Override() != null)
+            System.out.println(ctx.Override().getText());
         System.out.println(output);
         indent ++;
 
@@ -363,7 +371,7 @@ public class ProgramPrinter implements MiniJavaListener {
     public void exitMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
         indent --;
         if (ctx.methodBody().RETURN() != null)
-            System.out.println("\t\treturn " + ctx.methodBody().expression().getText() + ";");
+            System.out.println("\t\treturn " + expressionHandler(ctx.methodBody().expression()) + ";");
         System.out.print("\t}\n");
 
         stg.exitBlock();
@@ -480,7 +488,7 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterIfElseStatement(MiniJavaParser.IfElseStatementContext ctx) {
         printTab(indent);
-        System.out.print("if (" + ctx.expression().getText() + ") ");
+        System.out.print("if (" + expressionHandler(ctx.expression()) + ") ");
         indent ++;
     }
 
@@ -492,7 +500,7 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterWhileStatement(MiniJavaParser.WhileStatementContext ctx) {
         printTab(indent);
-        String output = "while ( " + ctx.expression().getText() + " ) ";
+        String output = "while ( " + expressionHandler(ctx.expression()) + " ) ";
         if (! ctx.whileBlock().getText().startsWith("{")) {
             output = output.concat(" {");
             System.out.println(output);
@@ -515,7 +523,7 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterPrintStatement(MiniJavaParser.PrintStatementContext ctx) {
         printTab(indent);
-        String output = "System.out.println ( " + ctx.expression().getText() + " );" ;
+        String output = "System.out.println ( " + expressionHandler(ctx.expression()) + " );" ;
         System.out.println(output);
     }
 
@@ -527,10 +535,7 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void enterVariableAssignmentStatement(MiniJavaParser.VariableAssignmentStatementContext ctx) {
         printTab(indent);
-        String firstPart = (ctx.expression().get(0).start.getText().equals("new")) ? ctx.expression().get(0).start.getText().replace("new", "new ") : ctx.expression().get(0).start.getText();
-        String secondPart = (ctx.expression().get(1).start.getText().equals("new")) ? ctx.expression().get(1).start.getText().replace("new", "new ") : ctx.expression().get(1).start.getText();
-//        String str = this.getExpression(ctx.expression().get(0)) + " = " + this.getExpression(ctx.expression().get(1)) + ";" ;
-        String output = firstPart + " = " + secondPart + ";";
+        String output = expressionHandler(ctx.expression().get(0)) + " = " + this.expressionHandler(ctx.expression().get(1)) + ";" ;
         System.out.println(output);
     }
 
@@ -561,7 +566,8 @@ public class ProgramPrinter implements MiniJavaListener {
 
     @Override
     public void enterExpressioncall(MiniJavaParser.ExpressioncallContext ctx) {
-
+        printTab(indent);
+        System.out.println(expressionHandler(ctx.expression()) + ";");
     }
 
     @Override
@@ -854,5 +860,76 @@ public class ProgramPrinter implements MiniJavaListener {
     @Override
     public void exitEveryRule(ParserRuleContext parserRuleContext) {
 
+    }
+
+
+    private void detectAllErrorsInCode(){
+        invalidInheritance();
+        try {
+            miniJavaClassDetail.checkImplementagtion();
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+
+    }
+
+    private void invalidInheritance(){
+        List<String> cycle = graph.findAllCycleNodes();
+        if (cycle.size() > 0) {
+            String errorMessage = "Error410 : Invalid inheritance ";
+            for(int i = 0 ; i < cycle.size() ; i++){
+                errorMessage += cycle.get(i);
+                if (i < cycle.size() - 1)
+                    errorMessage += " -> ";
+            }
+            System.err.println(errorMessage);
+        }
+    }
+
+    private String expressionHandler(MiniJavaParser.ExpressionContext expressionNode){
+        if (expressionNode instanceof MiniJavaParser.ArrayInstantiationExpressionContext){
+            String t = expressionNode.getChild(1).getText();
+            if (t.equals("number")){
+                t = "int";
+            }
+            return "new " + t + "[ " + expressionHandler(((MiniJavaParser.ArrayInstantiationExpressionContext) expressionNode).expression()) + "]" ;
+        }else if(expressionNode instanceof MiniJavaParser.ObjectInstantiationExpressionContext){
+            return expressionNode.getText().replace("new", "new ");
+        }else if(expressionNode instanceof MiniJavaParser.ArrayAccessExpressionContext){
+            return expressionHandler(((MiniJavaParser.ArrayAccessExpressionContext) expressionNode).expression(0)) + "[" + expressionHandler(((MiniJavaParser.ArrayAccessExpressionContext) expressionNode).expression(1)) + "]";
+        }else if(expressionNode instanceof MiniJavaParser.ArrayLengthExpressionContext){
+            return expressionHandler(((MiniJavaParser.ArrayLengthExpressionContext) expressionNode).expression()) + ((MiniJavaParser.ArrayLengthExpressionContext) expressionNode).DOTLENGTH();
+        }else if(expressionNode instanceof MiniJavaParser.MethodCallExpressionContext){
+            String s = ((MiniJavaParser.MethodCallExpressionContext) expressionNode).expression(0).getText() + '.' + ((MiniJavaParser.MethodCallExpressionContext) expressionNode).Identifier().getText() + "(";
+            for (int i=1; i<((MiniJavaParser.MethodCallExpressionContext) expressionNode).expression().size(); i++){
+                s = s.concat(expressionHandler(((MiniJavaParser.MethodCallExpressionContext) expressionNode).expression(i)));
+                if (i!=((MiniJavaParser.MethodCallExpressionContext) expressionNode).expression().size()-1){
+                    s = s.concat(", ");
+                }else{
+                    s = s.concat(")");
+                }
+            }
+            return s;
+        }else if(expressionNode instanceof MiniJavaParser.FieldCallExpressionContext){
+            return expressionHandler(expressionNode) + "." + ((MiniJavaParser.FieldCallExpressionContext) expressionNode).Identifier() ;
+        }else if(expressionNode instanceof MiniJavaParser.NotExpressionContext){
+            return "! " + expressionHandler(((MiniJavaParser.NotExpressionContext) expressionNode).expression());
+        }else if(expressionNode instanceof MiniJavaParser.PowExpressionContext){
+            return "Math.pow( " + expressionHandler(((MiniJavaParser.PowExpressionContext) expressionNode).expression(0))+ " , " + expressionHandler(((MiniJavaParser.PowExpressionContext) expressionNode).expression(1)) + " )" ;
+        }else if(expressionNode instanceof MiniJavaParser.AddExpressionContext) {
+            return expressionHandler(((MiniJavaParser.AddExpressionContext) expressionNode).expression(0)) + " + " + expressionHandler(((MiniJavaParser.AddExpressionContext) expressionNode).expression(1))  ;
+        }else if(expressionNode instanceof MiniJavaParser.SubExpressionContext) {
+            return expressionHandler(((MiniJavaParser.SubExpressionContext) expressionNode).expression(0)) + " - " + expressionHandler(((MiniJavaParser.SubExpressionContext) expressionNode).expression(1)) ;
+        }else if(expressionNode instanceof MiniJavaParser.MulExpressionContext) {
+            return expressionHandler(((MiniJavaParser.MulExpressionContext) expressionNode).expression(0)) + " * " + expressionHandler(((MiniJavaParser.MulExpressionContext) expressionNode).expression(1)) ;
+        }else if(expressionNode instanceof MiniJavaParser.ParenExpressionContext) {
+            return "(" +  expressionHandler(((MiniJavaParser.ParenExpressionContext) expressionNode).expression()) + ")";
+        }else if(expressionNode instanceof MiniJavaParser.AndExpressionContext) {
+            return expressionHandler(((MiniJavaParser.AndExpressionContext) expressionNode).expression(0)) + " && " + expressionHandler(((MiniJavaParser.AndExpressionContext) expressionNode).expression(1)) ;
+        }else if(expressionNode instanceof MiniJavaParser.LtExpressionContext) {
+            return expressionHandler(((MiniJavaParser.LtExpressionContext) expressionNode).expression(0)) + " < " + expressionHandler(((MiniJavaParser.LtExpressionContext) expressionNode).expression(1)) ;
+        }else {
+            return expressionNode.getText();
+        }
     }
 }
