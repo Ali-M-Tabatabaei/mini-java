@@ -24,7 +24,10 @@ public class Compiler{
                 parser.setBuildParseTree(true);
                 ParseTree tree = parser.program();
                 ParseTreeWalker walker = new ParseTreeWalker();
-                MiniJavaListener listener = new ProgramPrinter();
+                MiniJavaListener listener = new ProgramOptimizer();
+
+
+                walker.walk(listener, tree);
 
                 walker.walk(listener, tree);
 
